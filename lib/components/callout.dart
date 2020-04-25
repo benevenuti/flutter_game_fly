@@ -4,6 +4,7 @@ import 'package:flame/flame.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/painting.dart';
 
+import '../bgm.dart';
 import '../view.dart';
 import 'fly.dart';
 
@@ -44,7 +45,7 @@ class Callout {
               (fly.gameLoop.rnd.nextInt(5) + 1).toString() +
               '.ogg');
         }
-        fly.gameLoop.playHomeBGM();
+        playMusic();
         fly.gameLoop.activeView = View.lost;
       }
     }
@@ -67,5 +68,12 @@ class Callout {
       rect.center.dx - (tp.width / 2),
       rect.top + (rect.height * .4) - (tp.height / 2),
     );
+  }
+
+  void playMusic() async {
+    if (fly.gameLoop.musicButton.isEnabled) {
+      //await BGM.stop();
+      await BGM.play(0);
+    }
   }
 }

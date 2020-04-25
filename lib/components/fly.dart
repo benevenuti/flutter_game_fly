@@ -25,9 +25,13 @@ class Fly {
 
   Callout callout;
 
-  Fly(this.gameLoop) {
+  int points = 10;
+  double flyTime;
+
+  Fly(this.gameLoop, this.flyTime) {
     setTargetLocation();
     callout = Callout(this);
+    callout.value = flyTime;
   }
 
   void setTargetLocation() {
@@ -39,15 +43,19 @@ class Fly {
   }
 
   void render(Canvas canvas) {
+    //canvas.drawRect(flyRect.inflate(flyRect.width / 2), Paint()..color = Color(0x77ffffff));
+
     if (isDead) {
-      deadSprite.renderRect(canvas, flyRect.inflate(2));
+      deadSprite.renderRect(canvas, flyRect.inflate(flyRect.width / 2));
     } else {
       flyingSprite[flyingSpriteIndex.toInt()]
-          .renderRect(canvas, flyRect.inflate(2));
+          .renderRect(canvas, flyRect.inflate(flyRect.width / 2));
       if (gameLoop.activeView == View.playing) {
         callout.render(canvas);
       }
     }
+
+    //canvas.drawRect(flyRect, Paint()..color = Color(0x88000000));
   }
 
   void update(double time) {
@@ -74,6 +82,18 @@ class Fly {
       }
 
       callout.update(time);
+
+      gameLoop.flies.forEach((otherFly) {
+        if (otherFly != this &&
+            !this.isDead &&
+            !otherFly.isDead &&
+            flyRect.overlaps(otherFly.flyRect)
+        ) {
+          otherFly.isDead = true;
+          isDead = true;
+        }
+      });
+
     }
   }
 
@@ -87,7 +107,7 @@ class Fly {
       }
 
       if (gameLoop.activeView == View.playing) {
-        gameLoop.score += 1;
+        gameLoop.score += this.points;
 
         if (gameLoop.score > (gameLoop.storage.getInt('highscore') ?? 0)) {
           gameLoop.storage.setInt('highscore', gameLoop.score);

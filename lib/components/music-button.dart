@@ -3,6 +3,9 @@ import 'dart:ui';
 import 'package:flame/sprite.dart';
 import 'package:fluttergamefly/game_loop.dart';
 
+import '../bgm.dart';
+import '../view.dart';
+
 class MusicButton {
   final GameLoop game;
   Rect rect;
@@ -32,12 +35,15 @@ class MusicButton {
   void onTapDown() {
     if (isEnabled) {
       isEnabled = false;
-      game.homeBGM.setVolume(0);
-      game.playingBGM.setVolume(0);
+      BGM.stop();
     } else {
       isEnabled = true;
-      game.homeBGM.setVolume(.25);
-      game.playingBGM.setVolume(.25);
+      if (game.activeView == View.playing) {
+        BGM.play(1);
+      }
+      else {
+        BGM.play(0);
+      }
     }
   }
 }

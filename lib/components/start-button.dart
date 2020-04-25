@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flame/sprite.dart';
 
+import '../bgm.dart';
 import '../game_loop.dart';
 import '../view.dart';
 
@@ -27,9 +28,16 @@ class StartButton {
   void update(double time) {}
 
   void onTapDown() {
+    game.score = 0;
     game.activeView = View.playing;
     game.spawner.start();
-    game.score = 0;
-    game.playPlayingBGM();
+    playMusic();
+  }
+
+  void playMusic() async {
+    if (game.musicButton.isEnabled) {
+      //await BGM.stop();
+      await BGM.play(1);
+    }
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
@@ -13,6 +12,7 @@ import 'package:fluttergamefly/views/home-view.dart';
 import 'package:fluttergamefly/views/lost-view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'bgm.dart';
 import 'components/agile_fly.dart';
 import 'components/credits-button.dart';
 import 'components/drooler_fly.dart';
@@ -31,8 +31,8 @@ import 'controllers/spawner.dart';
 class GameLoop extends Game {
   final SharedPreferences storage;
 
-  AudioPlayer homeBGM;
-  AudioPlayer playingBGM;
+//  AudioPlayer homeBGM;
+//  AudioPlayer playingBGM;
 
   View activeView = View.home;
 
@@ -86,28 +86,39 @@ class GameLoop extends Game {
 
     spawner = FlySpawner(this);
 
-    homeBGM = await Flame.audio.loopLongAudio('bgm/home.mp3', volume: .25);
-    homeBGM.pause();
-    playingBGM =
-    await Flame.audio.loopLongAudio('bgm/playing.mp3', volume: .25);
-    playingBGM.pause();
+//    homeBGM = await Flame.audio.loopLongAudio('bgm/home.mp3', volume: .25);
+//    homeBGM.pause();
+//    playingBGM =
+//    await Flame.audio.loopLongAudio('bgm/playing.mp3', volume: .25);
+//    playingBGM.pause();
+//
+//    playHomeBGM();
 
-    playHomeBGM();
+    await BGM.add('bgm/home.mp3');
+    await BGM.add('bgm/playing.mp3');
+    playMusic();
 
     score = 0;
   }
 
-  void playHomeBGM() {
-    playingBGM.pause();
-    playingBGM.seek(Duration.zero);
-    homeBGM.resume();
+  void playMusic() async {
+    if (musicButton.isEnabled) {
+      //await BGM.stop();
+      await BGM.play(0);
+    }
   }
 
-  void playPlayingBGM() {
-    homeBGM.pause();
-    homeBGM.seek(Duration.zero);
-    playingBGM.resume();
-  }
+//  void playHomeBGM() {
+//    playingBGM.pause();
+//    playingBGM.seek(Duration.zero);
+//    homeBGM.resume();
+//  }
+//
+//  void playPlayingBGM() {
+//    homeBGM.pause();
+//    homeBGM.seek(Duration.zero);
+//    playingBGM.resume();
+//  }
 
   void spawnFly() {
     double x = rnd.nextDouble() * (screenSize.width - tileSize * 2.0);
@@ -239,7 +250,7 @@ class GameLoop extends Game {
       if (soundButton.isEnabled) {
         Flame.audio.play('sfx/haha' + (rnd.nextInt(5) + 1).toString() + '.ogg');
       }
-      playHomeBGM();
+      playMusic();
       activeView = View.lost;
     }
   }
