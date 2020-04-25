@@ -30,5 +30,6 @@ class StartButton {
     game.activeView = View.playing;
     game.spawner.start();
     game.score = 0;
+    game.playPlayingBGM();
   }
 }

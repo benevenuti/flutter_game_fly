@@ -1,10 +1,12 @@
 import 'dart:ui';
 
+import 'package:flame/flame.dart';
 import 'package:flame/sprite.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttergamefly/game_loop.dart';
 
 import '../view.dart';
+import 'callout.dart';
 
 class Fly {
   Rect flyRect;
@@ -21,10 +23,11 @@ class Fly {
 
   Offset targetLocation;
 
-  Fly(this.gameLoop) {
-    //toque
+  Callout callout;
 
+  Fly(this.gameLoop) {
     setTargetLocation();
+    callout = Callout(this);
   }
 
   void setTargetLocation() {
@@ -41,21 +44,24 @@ class Fly {
     } else {
       flyingSprite[flyingSpriteIndex.toInt()]
           .renderRect(canvas, flyRect.inflate(2));
+      if (gameLoop.activeView == View.playing) {
+        callout.render(canvas);
+      }
     }
   }
 
-  void update(double t) {
+  void update(double time) {
     if (isDead) {
-      flyRect = flyRect.translate(0, gameLoop.tileSize * 12 * t);
+      flyRect = flyRect.translate(0, gameLoop.tileSize * 12 * time);
       if (flyRect.bottom > gameLoop.screenSize.height) {
         isOffScreen = true;
       }
     } else {
-      flyingSpriteIndex += 30 * t;
+      flyingSpriteIndex += 30 * time;
       if (flyingSpriteIndex >= flyingSprite.length) {
         flyingSpriteIndex = flyingSpriteIndex - flyingSpriteIndex.toInt();
       }
-      double stepDistance = speed * t;
+      double stepDistance = speed * time;
 
       Offset toTarget = targetLocation - Offset(flyRect.left, flyRect.top);
       if (stepDistance < toTarget.distance) {
@@ -66,6 +72,8 @@ class Fly {
         flyRect = flyRect.shift(toTarget);
         setTargetLocation();
       }
+
+      callout.update(time);
     }
   }
 
@@ -73,8 +81,18 @@ class Fly {
     if (!isDead) {
       isDead = true;
 
+      if (gameLoop.soundButton.isEnabled) {
+        Flame.audio.play(
+            'sfx/ouch' + (gameLoop.rnd.nextInt(11) + 1).toString() + '.ogg');
+      }
+
       if (gameLoop.activeView == View.playing) {
         gameLoop.score += 1;
+
+        if (gameLoop.score > (gameLoop.storage.getInt('highscore') ?? 0)) {
+          gameLoop.storage.setInt('highscore', gameLoop.score);
+          gameLoop.highscoreDisplay.updateHighscore();
+        }
       }
     }
   }

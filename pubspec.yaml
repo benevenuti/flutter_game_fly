@@ -25,6 +25,8 @@ dependencies:
   cupertino_icons: ^0.1.2
   # lib de jogos
   flame: ^0.19.1
+  # salvar chaves / resgatar chaves
+  shared_preferences: ^0.5.1+2
 
 dev_dependencies:
   flutter_test:

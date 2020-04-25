@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
@@ -10,20 +11,29 @@ import 'package:fluttergamefly/views/credits-view.dart';
 import 'package:fluttergamefly/views/help-view.dart';
 import 'package:fluttergamefly/views/home-view.dart';
 import 'package:fluttergamefly/views/lost-view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'components/agile_fly.dart';
 import 'components/credits-button.dart';
 import 'components/drooler_fly.dart';
 import 'components/fly.dart';
 import 'components/help-button.dart';
+import 'components/highscore-display.dart';
 import 'components/house_fly.dart';
 import 'components/hungry_fly.dart';
 import 'components/macho_fly.dart';
+import 'components/music-button.dart';
 import 'components/score-display.dart';
+import 'components/sound-button.dart';
 import 'components/start-button.dart';
 import 'controllers/spawner.dart';
 
 class GameLoop extends Game {
+  final SharedPreferences storage;
+
+  AudioPlayer homeBGM;
+  AudioPlayer playingBGM;
+
   View activeView = View.home;
 
   Size screenSize;
@@ -37,16 +47,19 @@ class GameLoop extends Game {
   HelpView helpView;
   CreditsView creditsView;
   ScoreDisplay scoreDisplay;
+  HighscoreDisplay highscoreDisplay;
 
   FlySpawner spawner;
 
   StartButton startButton;
   HelpButton helpButton;
   CreditsButton creditsButton;
+  MusicButton musicButton;
+  SoundButton soundButton;
 
   int score;
 
-  GameLoop() {
+  GameLoop(this.storage) {
     initialize();
   }
 
@@ -63,14 +76,37 @@ class GameLoop extends Game {
     creditsView = CreditsView(this);
 
     scoreDisplay = ScoreDisplay(this);
+    highscoreDisplay = HighscoreDisplay(this);
 
     startButton = StartButton(this);
     helpButton = HelpButton(this);
     creditsButton = CreditsButton(this);
+    musicButton = MusicButton(this);
+    soundButton = SoundButton(this);
 
     spawner = FlySpawner(this);
 
+    homeBGM = await Flame.audio.loopLongAudio('bgm/home.mp3', volume: .25);
+    homeBGM.pause();
+    playingBGM =
+    await Flame.audio.loopLongAudio('bgm/playing.mp3', volume: .25);
+    playingBGM.pause();
+
+    playHomeBGM();
+
     score = 0;
+  }
+
+  void playHomeBGM() {
+    playingBGM.pause();
+    playingBGM.seek(Duration.zero);
+    homeBGM.resume();
+  }
+
+  void playPlayingBGM() {
+    homeBGM.pause();
+    homeBGM.seek(Duration.zero);
+    playingBGM.resume();
   }
 
   void spawnFly() {
@@ -101,6 +137,10 @@ class GameLoop extends Game {
   @override
   void render(Canvas canvas) {
     backyard.render(canvas);
+    highscoreDisplay.render(canvas);
+
+    musicButton.render(canvas);
+    soundButton.render(canvas);
 
     if (activeView == View.playing) scoreDisplay.render(canvas);
 
@@ -183,7 +223,23 @@ class GameLoop extends Game {
       }
     });
 
+    // music button
+    if (musicButton.rect.contains(details.globalPosition)) {
+      musicButton.onTapDown();
+      return;
+    }
+
+    // sound button
+    if (soundButton.rect.contains(details.globalPosition)) {
+      soundButton.onTapDown();
+      return;
+    }
+
     if (activeView == View.playing && !didHitAFly) {
+      if (soundButton.isEnabled) {
+        Flame.audio.play('sfx/haha' + (rnd.nextInt(5) + 1).toString() + '.ogg');
+      }
+      playHomeBGM();
       activeView = View.lost;
     }
   }
